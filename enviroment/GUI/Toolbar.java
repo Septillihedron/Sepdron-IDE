@@ -5,10 +5,15 @@ import enviroment.metadata.MetadataObject;
 import enviroment.metadata.MetadataType;
 
 import javax.swing.AbstractAction;
+import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JToolBar;
+import javax.swing.ImageIcon;
+import javax.imageio.ImageIO;
 import java.awt.event.ActionEvent;
+import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.IOException;
 
 public class Toolbar {
 	
@@ -18,30 +23,49 @@ public class Toolbar {
 	
 	private JToolBar toolbar;
 	
+	private JButton buildButton;
+	private ImageIcon buildIcon;
+	private ImageIcon activeBuildIcon;
+	
+	private JButton playButton;
+	private ImageIcon playIcon;
+	private ImageIcon activePlayIcon;
+	
+	private JButton stopButton;
+	private ImageIcon stopIcon;
+	private ImageIcon activeStopIcon;
+	
 	public Toolbar(GUI gui) {
 		this.gui=gui;
 		this.textEditor=gui.getTextEditor();
 		this.compiler=gui.getMain().getCompiler();
 		
+		loadIcons();
 		makeToolbar();
 	}
 	
 	private void makeToolbar() {
 		toolbar=new JToolBar();
+		toolbar.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 		
-		AbstractAction buildAction=new AbstractAction("Build") {
+		AbstractAction buildAction=new AbstractAction() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				File[] files=getFiles();
 				if(files==null) return;
 				File ftc=files[0];
 				boolean built=compiler.compile(ftc);
-				if(built) System.out.println("Build success");
+				if(built) {
+					System.out.println("Build success");
+					buildButton.setIcon(activeBuildIcon);
+					playButton.setIcon(playIcon);
+				}
 			}
 		};
-		JButton buildButton=new JButton(buildAction);
+		buildButton=new JButton(buildAction);
+		buildButton.setIcon(buildIcon);
 		toolbar.add(buildButton);
-		AbstractAction buildNrunAction=new AbstractAction("Build & Run") {
+		AbstractAction playAction=new AbstractAction() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				File[] files=getFiles();
@@ -51,25 +75,29 @@ public class Toolbar {
 				boolean built=compiler.compile(ftc);
 				if(built) {
 					boolean running=compiler.run(new File(ftc, "SepdronIDE-Program-Build"), metadata.get(MetadataType.MAINCLASS));
-					if(running) System.out.println("Code executed");
+					if(running) {
+						System.out.println("Code executed");
+						playButton.setIcon(activePlayIcon);
+						buildButton.setIcon(buildIcon);
+					}
 				}
 			}
 		};
-		JButton buildNrunButton=new JButton(buildNrunAction);
-		toolbar.add(buildNrunButton);
-		AbstractAction runAction=new AbstractAction("Run") {
+		playButton=new JButton(playAction);
+		playButton.setIcon(playIcon);
+		toolbar.add(playButton);
+		AbstractAction stopAction=new AbstractAction() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				File[] files=getFiles();
-				if(files==null) return;
-				File ftc=files[0];
-				MetadataObject metadata=new MetadataObject(files[1]);
-				boolean running=compiler.run(new File(ftc, "SepdronIDE-Program-Build"), metadata.get(MetadataType.MAINCLASS));
-				if(running) System.out.println("Code executed");
+				compiler.endProcess();
+				buildButton.setIcon(buildIcon);
+				playButton.setIcon(playIcon);
 			}
 		};
-		JButton runButton=new JButton(runAction);
-		toolbar.add(runButton);
+		stopButton=new JButton(stopAction);
+		stopButton.setIcon(stopIcon);
+		stopButton.setPressedIcon(activeStopIcon);
+		toolbar.add(stopButton);
 	}
 	
 	private File[] getFiles() {
@@ -91,6 +119,20 @@ public class Toolbar {
 				metadataFile=new File(ftc, ".file metadata.METADATA");
 		}
 		return new File[]{ftc, metadataFile};
+	}
+	
+	private void loadIcons() {
+		try {
+			BufferedImage buttonIcons=ImageIO.read(gui.getMain().getClass().getResource("resource/toolbarIcons/ButtonIcons.png"));
+			buildIcon      =new ImageIcon(buttonIcons.getSubimage(00, 32, 32, 32));
+			activeBuildIcon=new ImageIcon(buttonIcons.getSubimage(00, 00, 32, 32));
+			playIcon       =new ImageIcon(buttonIcons.getSubimage(32, 32, 32, 32));
+			activePlayIcon =new ImageIcon(buttonIcons.getSubimage(32, 00, 32, 32));
+			stopIcon       =new ImageIcon(buttonIcons.getSubimage(64, 32, 32, 32));
+			activeStopIcon =new ImageIcon(buttonIcons.getSubimage(64, 00, 32, 32));
+		} catch (IOException e) {
+			System.err.println("failed to load toolbar build icons");
+		}
 	}
 	
 	public JToolBar getToolbar() {

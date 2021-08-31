@@ -23,8 +23,7 @@ public class Compiler {
 	private JavaCompiler compiler;
 	private StandardJavaFileManager fileManager;
 	private Process program;
-	private InputStream out;
-	private InputStream err;
+	private InputStream err, out;
 	
 	public Compiler(Main main) {
 		this.main=main;
@@ -72,6 +71,7 @@ public class Compiler {
 			program=runtime.exec("java "+mainClass, null, containerFile);
 			err=program.getErrorStream();
 			out=program.getInputStream();
+			
 		} catch(IOException e) {
 			e.printStackTrace();
 			return false;

@@ -7,11 +7,17 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 import javax.swing.BorderFactory;
+import javax.imageio.ImageIO;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Image;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.IOException;
+import java.net.URL;
+import java.util.List;
+import java.util.ArrayList;
 
 public class GUI {
 	
@@ -35,7 +41,6 @@ public class GUI {
 		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		
 		mainPanel=new JPanel();
-		//mainPanel.setBorder(BorderFactory.createEmptyBorder());
 		mainPanel.setLayout(new BorderLayout());
 		
 		menu=new Menu(this);
@@ -48,9 +53,21 @@ public class GUI {
 		mainPanel.add(toolbar.getToolbar(), BorderLayout.NORTH);
 		
 		frame.add(mainPanel, BorderLayout.CENTER);
+		try {
+			List<Image> icons=new ArrayList<Image>();
+			for(int i=0; i<5; i++) {
+				int px=(int) Math.pow(2, i+4);
+				URL imageFile=main.getClass().getResource("resource/logo/logo-"+px+"px.png");
+				icons.add(ImageIO.read(imageFile));
+			}
+			frame.setIconImages(icons);
+		} catch (IOException e) {
+			e.printStackTrace();
+			System.err.println("failed to load IDE logo");
+		}
 		frame.setVisible(true);
 		frame.addWindowListener(new WindowAdapter() {
-			@Override
+			@Override	
 			public void windowClosing(WindowEvent e) {
 				main.getCompiler().endProcess();
 			}

@@ -49,7 +49,7 @@ public class TextEditor {//add internal decoration class;
 		textArea.setFont(font);
 		textArea.setTabSize(3);
 		final int fontHeight=textArea.getFontMetrics(font).getHeight();
-		textArea.setMargin(new Insets(2, 2, 2, 2));
+		textArea.setMargin(new Insets(2, 8, 2, 2));
 		//CTRL+S for save, keyboard shortcut
 		textArea.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke('s', KeyEvent.CTRL_DOWN_MASK), "saveFile");
 		textArea.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke('S', KeyEvent.CTRL_DOWN_MASK), "saveFile");
@@ -59,11 +59,11 @@ public class TextEditor {//add internal decoration class;
 			}
 		});
 		
-		replaceChar('(', "()", true, false);
-		replaceChar('[', "[]", true, false);
-		replaceChar('{', "{}", true, false);
-		replaceChar('"', "\"\"", true, false);
-		replaceChar('\'', "''", true, false);
+		replaceChar('(', "()");
+		replaceChar('[', "[]");
+		replaceChar('{', "{}");
+		replaceChar('"', "\"\"");
+		replaceChar('\'', "''");
 		indent();
 		
 		scrollPane=new JScrollPane(textArea, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
@@ -78,20 +78,16 @@ public class TextEditor {//add internal decoration class;
 			}
 		});
 	}
-	private void replaceChar(char toReplace, String replacement, boolean moveOne, boolean remove) {
+	private void replaceChar(char toReplace, String replacement) {
 		String actionKey="replace "+toReplace+" with "+replacement;
 		textArea.getInputMap(JComponent.WHEN_FOCUSED).put(KeyStroke.getKeyStroke(toReplace), actionKey);
 		textArea.getActionMap().put(actionKey, new AbstractAction() {
 			public void actionPerformed(ActionEvent e) {
 				Document doc=textArea.getDocument();
+				textArea.replaceSelection("");
 				try {
-					if(remove) {
-						doc.remove(textArea.getCaretPosition()-1, 1);
-					}
 					doc.insertString(textArea.getCaretPosition(), replacement, null);
-					if(moveOne) {
-						textArea.setCaretPosition(textArea.getCaretPosition()-(replacement.length()-1));
-					}
+					textArea.setCaretPosition(textArea.getCaretPosition()-(replacement.length()-1));
 				} catch (BadLocationException ex) {
 					ex.printStackTrace();
 				}
@@ -100,12 +96,11 @@ public class TextEditor {//add internal decoration class;
 	}
 	private void indent() {
 		String actionKey="indent";
-		textArea.getInputMap(JComponent.WHEN_FOCUSED).put(KeyStroke.getKeyStroke('\n'), actionKey);
+		textArea.getInputMap(JComponent.WHEN_FOCUSED).put(KeyStroke.getKeyStroke("ENTER"), actionKey);
 		textArea.getActionMap().put(actionKey, new AbstractAction() {
 			public void actionPerformed(ActionEvent e) {
 				Document doc=textArea.getDocument();
 				try {
-					doc.remove(textArea.getCaretPosition()-1, 1);
 					int caretPos=textArea.getCaretPosition();
 					int line=textArea.getLineOfOffset(caretPos);
 					int lineStart=textArea.getLineStartOffset(line);
@@ -149,6 +144,9 @@ public class TextEditor {//add internal decoration class;
 	public File getCurrentFile() {
 		return currentFile;
 	}
+	public LineNumbers getLineNumbers() {
+		return lineNumbers;
+	}
 	
 	protected void load(File file) {
 		save();
@@ -164,6 +162,7 @@ public class TextEditor {//add internal decoration class;
 		} catch(IOException e) {
 			System.out.println("failed to load: "+e.getMessage());
 		}
+		lineNumbers.repaint();
 	}
 	
 	protected void save() {

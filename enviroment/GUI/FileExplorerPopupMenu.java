@@ -13,6 +13,8 @@ import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.KeyStroke;
+import javax.swing.event.PopupMenuListener;
+import javax.swing.event.PopupMenuEvent;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreePath;
 import java.awt.Color;
@@ -47,6 +49,13 @@ public class FileExplorerPopupMenu {
 		this.tree=fileExplorer.getTree();
 		
 		popupMenu=new JPopupMenu();
+		popupMenu.addPopupMenuListener(new PopupMenuListener() {
+			public void popupMenuCanceled(PopupMenuEvent e) {}
+			public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {
+				gui.getTextEditor().getLineNumbers().repaint();
+			}
+			public void popupMenuWillBecomeVisible(PopupMenuEvent e) {}
+		});
 		makePopupMenu();
 	}
 	
